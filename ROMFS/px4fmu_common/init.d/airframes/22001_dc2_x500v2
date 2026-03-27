@@ -1,0 +1,87 @@
+#!/bin/sh
+#
+# @name DC2 X500 V2
+#
+# @type Quadrotor x
+# @class Copter
+#
+# @maintainer DC2 Project
+#
+# @board px4_fmu-v2 exclude
+# @board bitcraze_crazyflie exclude
+#
+
+. ${R}etc/init.d/rc.mc_defaults
+
+# Airvolute DroneCore 2 companion computer with Holybro X500 V2 frame.
+# Companion-controlled (no RC receiver). GPS-denied capable.
+# Internal UART (TELEM2) at 921600 for Jetson companion link.
+# Excludes per-vehicle calibration, sensor IDs, battery voltage dividers,
+# EKF2 vision enable (EKF2_EV_CTRL), and GPS mode (EKF2_GPS_CTRL).
+
+###############################################
+# Vehicle geometry and rate tuning
+# Identical to Holybro X500 V2 (4019)
+###############################################
+
+param set-default IMU_GYRO_CUTOFF 30
+
+param set-default MC_ROLLRATE_P 0.14
+param set-default MC_PITCHRATE_P 0.14
+param set-default MC_ROLLRATE_I 0.3
+param set-default MC_PITCHRATE_I 0.3
+param set-default MC_ROLLRATE_D 0.004
+param set-default MC_PITCHRATE_D 0.004
+
+# Square quadrotor X PX4 numbering
+param set-default CA_ROTOR_COUNT 4
+param set-default CA_ROTOR0_PX 1
+param set-default CA_ROTOR0_PY 1
+param set-default CA_ROTOR1_PX -1
+param set-default CA_ROTOR1_PY -1
+param set-default CA_ROTOR2_PX 1
+param set-default CA_ROTOR2_PY -1
+param set-default CA_ROTOR2_KM -0.05
+param set-default CA_ROTOR3_PX -1
+param set-default CA_ROTOR3_PY 1
+param set-default CA_ROTOR3_KM -0.05
+
+###############################################
+# RC-less companion computer architecture
+# DC2 has no RC receiver — fully companion-controlled
+###############################################
+
+param set-default COM_RC_IN_MODE 4
+param set-default NAV_RCL_ACT 0
+
+###############################################
+# GPS-denied readiness
+###############################################
+
+param set-default COM_ARM_WO_GPS 1
+
+###############################################
+# Safety
+###############################################
+
+# X500 V2 has no hardware safety switch
+param set-default CBRK_IO_SAFETY 22027
+
+# Datalink loss timeout (seconds)
+param set-default COM_DL_LOSS_T 10
+
+# Battery: 4S LiPo (project standard)
+param set-default BAT1_N_CELLS 4
+
+# Low battery: return to launch + land
+param set-default COM_LOW_BAT_ACT 3
+
+###############################################
+# Companion computer link (TELEM2 / UART)
+# DC2 internal UART between Jetson and Cube
+###############################################
+
+param set-default MAV_1_CONFIG 102
+param set-default MAV_1_MODE 2
+param set-default MAV_1_FORWARD 1
+param set-default SER_TEL2_BAUD 921600
