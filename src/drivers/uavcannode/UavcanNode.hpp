@@ -114,7 +114,12 @@ class UavcanNode : public px4::ScheduledWorkItem
 	 *  1000000/200
 	 */
 
-	static constexpr unsigned RxQueueLenPerIface = FramePerMSecond * ScheduleIntervalMs;
+	static constexpr unsigned DriverMaxRxQueueLenPerIface =
+		static_cast<unsigned>(UAVCAN_DRIVER::CanIface::MaxRxQueueCapacity);
+	static constexpr unsigned RxQueueLenPerIface = (FramePerMSecond * ScheduleIntervalMs
+			< DriverMaxRxQueueLenPerIface)
+		? (FramePerMSecond * ScheduleIntervalMs)
+		: DriverMaxRxQueueLenPerIface;
 
 public:
 	typedef UAVCAN_DRIVER::CanInitHelper<RxQueueLenPerIface> CanInitHelper;

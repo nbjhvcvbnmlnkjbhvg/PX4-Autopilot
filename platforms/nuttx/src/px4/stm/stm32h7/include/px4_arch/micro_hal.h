@@ -51,6 +51,7 @@ __BEGIN_DECLS
 #define RCC_APB1RSTR_TIM5RST  RCC_APB1LRSTR_TIM5RST
 
 #include <chip.h>
+#include <stm32_gpio.h>
 #include <hardware/stm32_flash.h>
 #include <arm_internal.h> //include up_systemreset() which is included on stm32.h
 #include <stm32_bbsram.h>
@@ -61,6 +62,22 @@ __BEGIN_DECLS
 #define HAS_BBSRAM CONFIG_STM32H7_BBSRAM
 #define BBSRAM_FILE_COUNT CONFIG_STM32H7_BBSRAM_FILES
 #define SAVE_CRASHDUMP CONFIG_STM32H7_SAVE_CRASHDUMP
+
+/*
+ * STM32H7 uses FDCAN, so the bxCAN filter register handoff storage from
+ * stm32_common is not available. Use backup SRAM words instead for the
+ * cannode app<->bootloader shared state.
+ */
+#undef crc_HiLOC
+#undef crc_LoLOC
+#undef signature_LOC
+#undef bus_speed_LOC
+#undef node_id_LOC
+#define crc_HiLOC       (STM32_BBSRAM_BASE + 0x00)
+#define crc_LoLOC       (STM32_BBSRAM_BASE + 0x04)
+#define signature_LOC   (STM32_BBSRAM_BASE + 0x08)
+#define bus_speed_LOC   (STM32_BBSRAM_BASE + 0x0c)
+#define node_id_LOC     (STM32_BBSRAM_BASE + 0x10)
 
 int stm32h7_flash_lock(size_t addr);
 int stm32h7_flash_unlock(size_t addr);

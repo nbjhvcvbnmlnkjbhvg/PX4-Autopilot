@@ -1,7 +1,7 @@
 # DCS2.Pilot sensor startup
 # BMI088 IMU (accel + gyro) on SPI1
-# BMP390 barometer on SPI1
+# BMP390 barometer support is scaffolded in board SPI config but is not yet
+# enabled in the PX4 board module list. Keep the first build path IMU-only.
 
 bmi088 -A -R 0 -s start
 bmi088 -G -R 0 -s start
-bmp388 -s start

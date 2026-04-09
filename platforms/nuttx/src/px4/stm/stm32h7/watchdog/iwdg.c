@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (C) 2026 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2026 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,75 +31,35 @@
  *
  ****************************************************************************/
 
-/**
- * @file can.c
- *
- * Board-specific CAN functions.
- */
+#include <nuttx/config.h>
 
-#if !defined(CONFIG_CAN)
-
-#include <stdint.h>
-
-__EXPORT
-uint16_t board_get_can_interfaces(void)
-{
-	return 0x1;
-}
-
-#else
-
-#include <errno.h>
-#include <debug.h>
-
-#include <nuttx/can/can.h>
-#include <arch/board/board.h>
-
-#include "chip.h"
 #include "arm_internal.h"
+#include "chip.h"
 
-#include "stm32.h"
-#include "stm32_can.h"
-#include "board_config.h"
+#include "nvic.h"
+#include "hardware/stm32_wdg.h"
+#include "hardware/stm32h7xxx_dbgmcu.h"
 
-#if defined(CONFIG_STM32_CAN1) && defined(CONFIG_STM32_CAN2)
-#  warning "Both CAN1 and CAN2 are enabled. Assuming only CAN1."
-#  undef CONFIG_STM32_CAN2
-#endif
-
-#ifdef CONFIG_STM32_CAN1
-#  define CAN_PORT 1
-#else
-#  define CAN_PORT 2
-#endif
-
-int can_devinit(void);
-
-int can_devinit(void)
+void watchdog_pet(void)
 {
-	static bool initialized = false;
-	struct can_dev_s *can;
-	int ret;
-
-	if (!initialized) {
-		can = stm32_caninitialize(CAN_PORT);
-
-		if (can == NULL) {
-			canerr("ERROR: Failed to get CAN interface\n");
-			return -ENODEV;
-		}
-
-		ret = can_register("/dev/can0", can);
-
-		if (ret < 0) {
-			canerr("ERROR: can_register failed: %d\n", ret);
-			return ret;
-		}
-
-		initialized = true;
-	}
-
-	return OK;
+	putreg32(IWDG_KR_KEY_RELOAD, STM32_IWDG_KR);
 }
 
-#endif
+void watchdog_init(void)
+{
+	/* Freeze the IWDG while halted under a debugger. */
+	putreg32(getreg32(STM32_DBGMCU_APB4LFZ1) | DBGMCU_APB4FZ1_IIWDG1STOP, STM32_DBGMCU_APB4LFZ1);
+
+	/* Unlock watchdog registers. */
+	putreg32(IWDG_KR_KEY_ENABLE, STM32_IWDG_KR);
+
+	/* Set the prescale value. */
+	putreg32(IWDG_PR_DIV16, STM32_IWDG_PR);
+
+	/* Set the reload value. */
+	putreg32(IWDG_RLR_MAX, STM32_IWDG_RLR);
+
+	/* Start the watchdog and immediately pet it. */
+	putreg32(IWDG_KR_KEY_START, STM32_IWDG_KR);
+	watchdog_pet();
+}

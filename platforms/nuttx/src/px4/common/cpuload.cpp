@@ -158,6 +158,7 @@ void sched_note_stop(FAR struct tcb_s *tcb)
 #endif
 }
 
+#ifdef CONFIG_SCHED_INSTRUMENTATION_SWITCH
 void sched_note_suspend(FAR struct tcb_s *tcb)
 {
 	if (system_load.initialized) {
@@ -214,6 +215,7 @@ void sched_note_resume(FAR struct tcb_s *tcb)
 	sysview_sched_note_resume(tcb);
 #endif
 }
+#endif
 
 #ifdef CONFIG_SEGGER_SYSVIEW
 
@@ -225,14 +227,14 @@ void sched_note_irqhandler(int irq, FAR void *handler, bool enter)
 #endif
 
 #ifdef CONFIG_SCHED_INSTRUMENTATION_SYSCALL
-void sched_note_syscall_enter(int nr);
+void sched_note_syscall_enter(int nr)
 {
 	sysview_sched_note_syscall_enter(nr);
 }
 
-void sched_note_syscall_enter(int nr);
+void sched_note_syscall_leave(int nr)
 {
-	sysview_sched_note_syscall_enter(nr);
+	sysview_sched_note_syscall_leave(nr);
 }
 #endif
 
