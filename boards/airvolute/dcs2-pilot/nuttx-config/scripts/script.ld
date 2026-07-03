@@ -17,10 +17,12 @@ MEMORY
     flash  (rx) : ORIGIN = 0x08020000, LENGTH = 1920K
     sram  (rwx) : ORIGIN = 0x20000000, LENGTH = 128K
     axiram (rwx) : ORIGIN = 0x24000000, LENGTH = 512K
+    sram4  (rwx) : ORIGIN = 0x38000000, LENGTH = 64K
 }
 
 OUTPUT_ARCH(arm)
 EXTERN(_vectors)
+EXTERN(_bootdelay_signature)
 ENTRY(__start)
 
 SECTIONS
@@ -29,6 +31,10 @@ SECTIONS
     {
         _stext = ABSOLUTE(.);
         *(.vectors)
+        . = ALIGN(8);
+        /* app_descriptor_t located by make_can_boot_descriptor.py so the DroneCAN
+         * bootloader can validate image crc/size (mirrors ark/can-rtk-gps) */
+        KEEP(*(.app_descriptor))
         . = ALIGN(32);
         *(.text .text.*)
         *(.fixup)
@@ -82,6 +88,16 @@ SECTIONS
         . = ALIGN(4);
         _ebss = ABSOLUTE(.);
     } > sram
+
+    /* D3 power domain section — provides _sram4_heap_start for the 4th heap
+     * region (CONFIG_MM_REGIONS=4). Mirrors boards/cubepilot/cubeorangeplus.
+     */
+    .sram4_reserve (NOLOAD) :
+    {
+        *(.sram4)
+        . = ALIGN(4);
+        _sram4_heap_start = ABSOLUTE(.);
+    } > sram4
 
     /* Stabs debugging sections */
     .stab 0 : { *(.stab) }
