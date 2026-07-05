@@ -87,6 +87,7 @@ rules.ninja
 **/*.a
 **/*.px4mod
 **/*.stamp
+.venv-px4-build/
 /coverage*
 /functional-*
 /generated_params/
@@ -103,6 +104,10 @@ platforms/posix/apps.h
 src/lib/version/build_git_version.h
 src/modules/simulator/simulator_config.h
 src/systemcmds/topic_listener/listener_generated.cpp
+
+# NuttX configure can leave self-referential symlinks in custom board configs.
+boards/*/*/nuttx-config/include/include
+boards/*/*/nuttx-config/src/src
 
 !src/drivers/distance_sensor/broadcom/afbrs50/Lib/*
 
